@@ -1,163 +1,223 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Sistema Contable</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<meta charset="UTF-8">
+<title>Sistema Contable Profesional</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body{
+    background:#eef2f7;
+}
+.header{
+    background:#1f3c88;
+    color:white;
+    padding:20px;
+    text-align:center;
+}
+.card-box{
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+</style>
 </head>
-<body class="bg-light">
 
-<div class="container mt-5">
-    <div class="card shadow-lg">
-        <div class="card-header bg-primary text-white">
-            <h3 class="text-center">Sistema Contable - Libro Diario</h3>
-        </div>
+<body>
 
-        <div class="card-body">
+<div class="header">
+    <h2>Sistema Contable Profesional</h2>
+</div>
 
-            <!-- FORMULARIO -->
-            <form id="formContable">
-                <div class="row mb-3">
+<div class="container mt-4">
 
-                    <div class="col-md-3">
-                        <label class="form-label">Fecha</label>
-                        <input type="date" id="fecha" class="form-control" required>
-                    </div>
+<div class="row">
 
-                    <div class="col-md-3">
-                        <label class="form-label">Concepto</label>
-                        <input type="text" id="concepto" class="form-control" placeholder="Ej: Pago arriendo" required>
-                    </div>
+<!-- FORMULARIO -->
+<div class="col-md-4">
+<div class="card card-box p-3">
 
-                    <div class="col-md-3">
-                        <label class="form-label">Monto</label>
-                        <input type="number" id="monto" class="form-control" placeholder="0" required>
-                    </div>
+<h5>Registrar Movimiento</h5>
 
-                    <div class="col-md-3">
-                        <label class="form-label">Tipo</label>
-                        <select id="tipo" class="form-select" required>
-                            <option value="">Seleccione</option>
-                            <option value="Ingreso">Ingreso</option>
-                            <option value="Egreso">Egreso</option>
-                        </select>
-                    </div>
+<form id="formContable">
 
-                </div>
+<div class="mb-2">
+<label>Fecha</label>
+<input type="date" id="fecha" class="form-control" required>
+</div>
 
-                <button type="submit" class="btn btn-success w-100">
-                    Registrar Movimiento
-                </button>
-            </form>
+<div class="mb-2">
+<label>Concepto</label>
+<input type="text" id="concepto" class="form-control" required>
+</div>
 
-            <hr>
+<div class="mb-2">
+<label>Monto</label>
+<input type="number" id="monto" class="form-control" required>
+</div>
 
-            <!-- TABLA -->
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped mt-3">
-                    <thead class="table-dark text-center">
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Concepto</th>
-                            <th>Ingreso</th>
-                            <th>Egreso</th>
-                            <th>Eliminar</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaMovimientos">
-                    </tbody>
-                </table>
-            </div>
+<div class="mb-2">
+<label>Tipo Movimiento</label>
+<select id="tipo" class="form-select" required>
+<option value="">Seleccione</option>
+<option value="Ingreso">Ingreso</option>
+<option value="Egreso">Egreso</option>
+</select>
+</div>
 
-            <hr>
+<div class="mb-3">
+<label>Cuenta Contable</label>
+<select id="cuenta" class="form-select" required>
+<option value="">Seleccione</option>
+<option value="Activo">Activo</option>
+<option value="Pasivo">Pasivo</option>
+<option value="Patrimonio">Patrimonio</option>
+<option value="Ingreso">Ingreso</option>
+<option value="Gasto">Gasto</option>
+</select>
+</div>
 
-            <!-- RESUMEN -->
-            <div class="row text-center">
-                <div class="col-md-4">
-                    <h5>Total Ingresos</h5>
-                    <h4 class="text-success" id="totalIngresos">$0</h4>
-                </div>
-                <div class="col-md-4">
-                    <h5>Total Egresos</h5>
-                    <h4 class="text-danger" id="totalEgresos">$0</h4>
-                </div>
-                <div class="col-md-4">
-                    <h5>Saldo</h5>
-                    <h4 class="text-primary" id="saldo">$0</h4>
-                </div>
-            </div>
+<button type="submit" class="btn btn-success w-100">
+Registrar
+</button>
 
-        </div>
-    </div>
+</form>
+</div>
+</div>
+
+<!-- TABLA -->
+<div class="col-md-8">
+<div class="card card-box p-3">
+
+<h5>Libro Diario</h5>
+
+<table class="table table-bordered table-striped text-center">
+<thead class="table-dark">
+<tr>
+<th>Fecha</th>
+<th>Concepto</th>
+<th>Cuenta</th>
+<th>Ingreso</th>
+<th>Egreso</th>
+</tr>
+</thead>
+<tbody id="tabla"></tbody>
+</table>
+
+</div>
+</div>
+
+</div>
+
+<!-- BALANCE Y RESULTADOS -->
+<div class="row mt-4">
+
+<div class="col-md-6">
+<div class="card card-box p-3">
+<h5>📊 Balance General</h5>
+<p><strong>Activos:</strong> $<span id="activo">0</span></p>
+<p><strong>Pasivos:</strong> $<span id="pasivo">0</span></p>
+<p><strong>Patrimonio:</strong> $<span id="patrimonio">0</span></p>
+<hr>
+<p id="ecuacion"></p>
+</div>
+</div>
+
+<div class="col-md-6">
+<div class="card card-box p-3">
+<h5>📈 Estado de Resultados</h5>
+<p><strong>Ingresos:</strong> $<span id="ingresos">0</span></p>
+<p><strong>Gastos:</strong> $<span id="gastos">0</span></p>
+<hr>
+<p><strong>Utilidad / Pérdida:</strong> $<span id="utilidad">0</span></p>
+</div>
+</div>
+
+</div>
+
 </div>
 
 <script>
-let movimientos = JSON.parse(localStorage.getItem("movimientos")) || [];
+let movimientos = JSON.parse(localStorage.getItem("movimientosPC")) || [];
 
 const form = document.getElementById("formContable");
-const tabla = document.getElementById("tablaMovimientos");
+const tabla = document.getElementById("tabla");
 
-form.addEventListener("submit", function(e) {
-    e.preventDefault();
+form.addEventListener("submit", function(e){
+e.preventDefault();
 
-    const fecha = document.getElementById("fecha").value;
-    const concepto = document.getElementById("concepto").value;
-    const monto = parseFloat(document.getElementById("monto").value);
-    const tipo = document.getElementById("tipo").value;
+const movimiento = {
+fecha: fecha.value,
+concepto: concepto.value,
+monto: parseFloat(monto.value),
+tipo: tipo.value,
+cuenta: cuenta.value
+};
 
-    const movimiento = { fecha, concepto, monto, tipo };
-    movimientos.push(movimiento);
+movimientos.push(movimiento);
+localStorage.setItem("movimientosPC", JSON.stringify(movimientos));
 
-    localStorage.setItem("movimientos", JSON.stringify(movimientos));
-
-    form.reset();
-    mostrarMovimientos();
+form.reset();
+mostrar();
 });
 
-function mostrarMovimientos() {
-    tabla.innerHTML = "";
-    let totalIngresos = 0;
-    let totalEgresos = 0;
+function mostrar(){
 
-    movimientos.forEach((mov, index) => {
-        const fila = document.createElement("tr");
+tabla.innerHTML="";
 
-        let ingreso = "";
-        let egreso = "";
+let ingresos=0, egresos=0;
+let activo=0, pasivo=0, patrimonio=0;
+let gastos=0;
 
-        if (mov.tipo === "Ingreso") {
-            ingreso = "$" + mov.monto.toLocaleString();
-            totalIngresos += mov.monto;
-        } else {
-            egreso = "$" + mov.monto.toLocaleString();
-            totalEgresos += mov.monto;
-        }
+movimientos.forEach(mov=>{
 
-        fila.innerHTML = `
-            <td>${mov.fecha}</td>
-            <td>${mov.concepto}</td>
-            <td class="text-success">${ingreso}</td>
-            <td class="text-danger">${egreso}</td>
-            <td class="text-center">
-                <button class="btn btn-sm btn-danger" onclick="eliminarMovimiento(${index})">X</button>
-            </td>
-        `;
+let fila=document.createElement("tr");
 
-        tabla.appendChild(fila);
-    });
+let ingresoCol="";
+let egresoCol="";
 
-    document.getElementById("totalIngresos").textContent = "$" + totalIngresos.toLocaleString();
-    document.getElementById("totalEgresos").textContent = "$" + totalEgresos.toLocaleString();
-    document.getElementById("saldo").textContent = "$" + (totalIngresos - totalEgresos).toLocaleString();
+if(mov.tipo==="Ingreso"){
+ingresos+=mov.monto;
+ingresoCol=mov.monto.toLocaleString();
+}else{
+egresos+=mov.monto;
+egresoCol=mov.monto.toLocaleString();
 }
 
-function eliminarMovimiento(index) {
-    movimientos.splice(index, 1);
-    localStorage.setItem("movimientos", JSON.stringify(movimientos));
-    mostrarMovimientos();
+if(mov.cuenta==="Activo") activo+=mov.monto;
+if(mov.cuenta==="Pasivo") pasivo+=mov.monto;
+if(mov.cuenta==="Patrimonio") patrimonio+=mov.monto;
+if(mov.cuenta==="Ingreso") ingresos+=mov.monto;
+if(mov.cuenta==="Gasto") gastos+=mov.monto;
+
+fila.innerHTML=`
+<td>${mov.fecha}</td>
+<td>${mov.concepto}</td>
+<td>${mov.cuenta}</td>
+<td class="text-success">${ingresoCol}</td>
+<td class="text-danger">${egresoCol}</td>
+`;
+
+tabla.appendChild(fila);
+
+});
+
+let utilidad=ingresos-gastos;
+
+document.getElementById("ingresos").textContent=ingresos.toLocaleString();
+document.getElementById("gastos").textContent=gastos.toLocaleString();
+document.getElementById("utilidad").textContent=utilidad.toLocaleString();
+
+document.getElementById("activo").textContent=activo.toLocaleString();
+document.getElementById("pasivo").textContent=pasivo.toLocaleString();
+document.getElementById("patrimonio").textContent=patrimonio.toLocaleString();
+
+document.getElementById("ecuacion").textContent=
+"Activo ("+activo.toLocaleString()+") = Pasivo ("+
+pasivo.toLocaleString()+") + Patrimonio ("+
+patrimonio.toLocaleString()+")";
 }
 
-mostrarMovimientos();
+mostrar();
 </script>
 
 </body>
