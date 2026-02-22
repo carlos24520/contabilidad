@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>App Contable</title>
+<title>App Contable Pro</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
@@ -11,7 +11,6 @@ body{
     background:#f4f6f9;
     font-family: Arial, sans-serif;
 }
-
 .header-app{
     background:#0d6efd;
     color:white;
@@ -20,18 +19,15 @@ body{
     font-size:20px;
     font-weight:bold;
 }
-
 .card-app{
     border-radius:15px;
     box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
-
 .btn-app{
     height:50px;
     font-size:18px;
     border-radius:12px;
 }
-
 .resumen-fijo{
     position:fixed;
     bottom:0;
@@ -40,147 +36,187 @@ body{
     padding:10px;
     box-shadow:0 -2px 10px rgba(0,0,0,0.1);
 }
+.balance-box{
+    background:white;
+    padding:15px;
+    border-radius:15px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.08);
+}
 </style>
 </head>
 
 <body>
 
 <div class="header-app">
-    📱 App Contable
+📱 App Contable con Balance
 </div>
 
 <div class="container mt-3 mb-5">
 
-    <div class="card card-app p-3">
+<div class="card card-app p-3">
 
-        <form id="formContable">
+<form id="formContable">
 
-            <div class="mb-3">
-                <label>Fecha</label>
-                <input type="date" id="fecha" class="form-control form-control-lg" required>
-            </div>
+<div class="mb-3">
+<label>Fecha</label>
+<input type="date" id="fecha" class="form-control form-control-lg" required>
+</div>
 
-            <div class="mb-3">
-                <label>Concepto</label>
-                <input type="text" id="concepto" class="form-control form-control-lg" placeholder="Ej: Pago arriendo" required>
-            </div>
+<div class="mb-3">
+<label>Concepto</label>
+<input type="text" id="concepto" class="form-control form-control-lg" required>
+</div>
 
-            <div class="mb-3">
-                <label>Monto</label>
-                <input type="number" id="monto" class="form-control form-control-lg" required>
-            </div>
+<div class="mb-3">
+<label>Monto</label>
+<input type="number" id="monto" class="form-control form-control-lg" required>
+</div>
 
-            <div class="mb-3">
-                <label>Tipo</label>
-                <select id="tipo" class="form-select form-select-lg" required>
-                    <option value="">Seleccione</option>
-                    <option value="Ingreso">Ingreso</option>
-                    <option value="Egreso">Egreso</option>
-                </select>
-            </div>
+<div class="mb-3">
+<label>Tipo Movimiento</label>
+<select id="tipo" class="form-select form-select-lg" required>
+<option value="">Seleccione</option>
+<option value="Ingreso">Ingreso</option>
+<option value="Egreso">Egreso</option>
+</select>
+</div>
 
-            <button type="submit" class="btn btn-success btn-app w-100">
-                Registrar Movimiento
-            </button>
+<div class="mb-3">
+<label>Cuenta Contable</label>
+<select id="cuenta" class="form-select form-select-lg" required>
+<option value="">Seleccione</option>
+<option value="Activo">Activo</option>
+<option value="Pasivo">Pasivo</option>
+<option value="Patrimonio">Patrimonio</option>
+<option value="Ingreso">Ingreso</option>
+<option value="Gasto">Gasto</option>
+</select>
+</div>
 
-        </form>
+<button type="submit" class="btn btn-success btn-app w-100">
+Registrar
+</button>
 
-    </div>
+</form>
+</div>
 
-    <div class="mt-4">
-        <h5 class="text-center">Movimientos</h5>
-        <ul class="list-group" id="listaMovimientos"></ul>
-    </div>
+<!-- MOVIMIENTOS -->
+<div class="mt-4">
+<h5 class="text-center">Movimientos</h5>
+<ul class="list-group" id="listaMovimientos"></ul>
+</div>
+
+<!-- BALANCE -->
+<div class="mt-4 balance-box">
+<h5 class="text-center">📊 Balance General</h5>
+<div class="row text-center">
+<div class="col-4">
+<small>Activos</small>
+<div class="text-primary fw-bold" id="totalActivo">$0</div>
+</div>
+<div class="col-4">
+<small>Pasivos</small>
+<div class="text-danger fw-bold" id="totalPasivo">$0</div>
+</div>
+<div class="col-4">
+<small>Patrimonio</small>
+<div class="text-success fw-bold" id="totalPatrimonio">$0</div>
+</div>
+</div>
+<div class="text-center mt-2">
+<small id="ecuacionBalance"></small>
+</div>
+</div>
 
 </div>
 
-<!-- RESUMEN FIJO -->
+<!-- RESUMEN INFERIOR -->
 <div class="resumen-fijo text-center">
-    <div class="row">
-        <div class="col-4">
-            <small>Ingresos</small>
-            <div class="text-success fw-bold" id="totalIngresos">$0</div>
-        </div>
-        <div class="col-4">
-            <small>Egresos</small>
-            <div class="text-danger fw-bold" id="totalEgresos">$0</div>
-        </div>
-        <div class="col-4">
-            <small>Saldo</small>
-            <div class="text-primary fw-bold" id="saldo">$0</div>
-        </div>
-    </div>
+<div class="row">
+<div class="col-4">
+<small>Ingresos</small>
+<div class="text-success fw-bold" id="totalIngresos">$0</div>
+</div>
+<div class="col-4">
+<small>Egresos</small>
+<div class="text-danger fw-bold" id="totalEgresos">$0</div>
+</div>
+<div class="col-4">
+<small>Saldo</small>
+<div class="text-primary fw-bold" id="saldo">$0</div>
+</div>
+</div>
 </div>
 
 <script>
-let movimientos = JSON.parse(localStorage.getItem("movimientos")) || [];
+let movimientos = JSON.parse(localStorage.getItem("movimientosBalance")) || [];
 
 const form = document.getElementById("formContable");
 const lista = document.getElementById("listaMovimientos");
 
 form.addEventListener("submit", function(e){
-    e.preventDefault();
+e.preventDefault();
 
-    const fecha = document.getElementById("fecha").value;
-    const concepto = document.getElementById("concepto").value;
-    const monto = parseFloat(document.getElementById("monto").value);
-    const tipo = document.getElementById("tipo").value;
+const movimiento = {
+fecha: fecha.value,
+concepto: concepto.value,
+monto: parseFloat(monto.value),
+tipo: tipo.value,
+cuenta: cuenta.value
+};
 
-    const movimiento = {fecha, concepto, monto, tipo};
-    movimientos.push(movimiento);
-
-    localStorage.setItem("movimientos", JSON.stringify(movimientos));
-
-    form.reset();
-    mostrarMovimientos();
+movimientos.push(movimiento);
+localStorage.setItem("movimientosBalance", JSON.stringify(movimientos));
+form.reset();
+mostrar();
 });
 
-function mostrarMovimientos(){
-    lista.innerHTML = "";
-    let totalIngresos = 0;
-    let totalEgresos = 0;
+function mostrar(){
+lista.innerHTML = "";
 
-    movimientos.forEach((mov, index)=>{
+let ingresos=0, egresos=0;
+let activo=0, pasivo=0, patrimonio=0;
 
-        const item = document.createElement("li");
-        item.className = "list-group-item d-flex justify-content-between align-items-center";
+movimientos.forEach((mov,index)=>{
 
-        let montoTexto = "$" + mov.monto.toLocaleString();
+if(mov.tipo==="Ingreso") ingresos+=mov.monto;
+if(mov.tipo==="Egreso") egresos+=mov.monto;
 
-        if(mov.tipo === "Ingreso"){
-            totalIngresos += mov.monto;
-            montoTexto = "<span class='text-success fw-bold'>" + montoTexto + "</span>";
-        }else{
-            totalEgresos += mov.monto;
-            montoTexto = "<span class='text-danger fw-bold'>-" + montoTexto + "</span>";
-        }
+if(mov.cuenta==="Activo") activo+=mov.monto;
+if(mov.cuenta==="Pasivo") pasivo+=mov.monto;
+if(mov.cuenta==="Patrimonio") patrimonio+=mov.monto;
 
-        item.innerHTML = `
-            <div>
-                <div><strong>${mov.concepto}</strong></div>
-                <small>${mov.fecha}</small>
-            </div>
-            <div>
-                ${montoTexto}
-                <button class="btn btn-sm btn-outline-danger ms-2" onclick="eliminar(${index})">X</button>
-            </div>
-        `;
+const item=document.createElement("li");
+item.className="list-group-item d-flex justify-content-between";
 
-        lista.appendChild(item);
-    });
+item.innerHTML=`
+<div>
+<strong>${mov.concepto}</strong><br>
+<small>${mov.fecha} | ${mov.cuenta}</small>
+</div>
+<div>$${mov.monto.toLocaleString()}</div>
+`;
 
-    document.getElementById("totalIngresos").textContent = "$" + totalIngresos.toLocaleString();
-    document.getElementById("totalEgresos").textContent = "$" + totalEgresos.toLocaleString();
-    document.getElementById("saldo").textContent = "$" + (totalIngresos - totalEgresos).toLocaleString();
+lista.appendChild(item);
+});
+
+let saldo=ingresos-egresos;
+
+document.getElementById("totalIngresos").textContent="$"+ingresos.toLocaleString();
+document.getElementById("totalEgresos").textContent="$"+egresos.toLocaleString();
+document.getElementById("saldo").textContent="$"+saldo.toLocaleString();
+
+document.getElementById("totalActivo").textContent="$"+activo.toLocaleString();
+document.getElementById("totalPasivo").textContent="$"+pasivo.toLocaleString();
+document.getElementById("totalPatrimonio").textContent="$"+patrimonio.toLocaleString();
+
+document.getElementById("ecuacionBalance").textContent=
+"Activo ("+activo.toLocaleString()+") = Pasivo ("+
+pasivo.toLocaleString()+") + Patrimonio ("+
+patrimonio.toLocaleString()+")";
 }
 
-function eliminar(index){
-    movimientos.splice(index,1);
-    localStorage.setItem("movimientos", JSON.stringify(movimientos));
-    mostrarMovimientos();
-}
-
-mostrarMovimientos();
+mostrar();
 </script>
 
 </body>
