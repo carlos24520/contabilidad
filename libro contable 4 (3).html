@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Sistema Contable Pro</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-4">
+
+<h2 class="mb-4">Sistema Contable Pro</h2>
+
+<div class="card p-3 mb-4">
+<div class="row">
+
+<!-- CAMPOS -->
+<div class="col-md-9">
+
+<div class="row mb-2">
+<div class="col-md-4">
+<input type="date" id="fecha" class="form-control">
+</div>
+
+<div class="col-md-4">
+<input type="text" id="cuenta" class="form-control" placeholder="Cuenta">
+</div>
+
+<div class="col-md-4">
+<input type="text" id="glosa" class="form-control" placeholder="Glosa">
+</div>
+</div>
+
+<div class="row mb-2">
+<div class="col-md-4">
+<input type="number" id="debe" class="form-control" placeholder="Debe">
+</div>
+
+<div class="col-md-4">
+<input type="number" id="haber" class="form-control" placeholder="Haber">
+</div>
+
+<div class="col-md-4">
+<select id="clasificacion" class="form-control">
+<option value="Activo">Activo</option>
+<option value="Pasivo">Pasivo</option>
+<option value="Patrimonio">Patrimonio</option>
+<option value="Ingreso">Ingreso</option>
+<option value="Gasto">Gasto</option>
+<option value="Costo">Costo</option>
+</select>
+</div>
+</div>
+
+</div>
+
+<!-- BOTONES EN COLUMNA -->
+<div class="col-md-3 d-grid gap-2">
+
+<button onclick="agregar()" class="btn btn-primary">Agregar</button>
+
+<button onclick="cerrarMes()" class="btn btn-success">Cerrar Mes</button>
+
+<button onclick="guardarWord()" class="btn btn-secondary">Guardar en Word</button>
+
+<button onclick="imprimir()" class="btn btn-dark">Imprimir</button>
+
+<button onclick="exportarExcel()" class="btn btn-success">Exportar a Excel</button>
+
+</div>
+
+</div>
+</div>
+
+<h4>Libro Diario</h4>
+<table class="table table-bordered">
+<thead class="table-dark">
+<tr>
+<th>Fecha</th>
+<th>Cuenta</th>
+<th>Glosa</th>
+<th>Debe</th>
+<th>Haber</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody id="tabla"></tbody>
+</table>
+
+<h4>Libro Mayor (Formato T)</h4>
+<div id="mayor"></div>
+
+<h4>Balance</h4>
+<div id="balance"></div>
+
+<h4>Estado de Resultados</h4>
+<div id="resultado"></div>
+
+<h4>Balance de Comprobación</h4>
+<div id="balanceComprobacion"></div>
+
+<h4 class="mt-4">Gráfico</h4>
+<canvas id="grafico"></canvas>
+
+<h4 class="mt-4">Libro de Cierre Mensual</h4>
+<table class="table table-bordered">
+<thead class="table-dark">
+<tr>
+<th>Mes</th>
+<th>Ingresos</th>
+<th>Gastos</th>
+<th>Costos</th>
+<th>Utilidad</th>
+</tr>
+</thead>
+<tbody id="libroMensual"></tbody>
+</table>
+
+</div>
+
+<script>
+
+let movimientos=[];
+let miGrafico=null;
+let cierresMensuales=[];
+let mesesCerrados=[];
+
+function obtenerMesActual(){
+let fecha=new Date();
+return fecha.getMonth()+"-"+fecha.getFullYear();
+}
+
+function agregar(){
+
+let mesActual=obtenerMesActual();
+if(mesesCerrados.includes(mesActual)){
+alert("Este mes ya está cerrado.");
+return;
+}
+
+let m={
+f:document.getElementById("fecha").value,
+c:document.getElementById("cuenta").value,
+g:document.getElementById("glosa").value,
+d:Number(document.getElementById("debe").value)||0,
+h:Number(document.getElementById("haber").value)||0,
+cl:document.getElementById("clasificacion").value
+};
+
+movimientos.push(m);
+renderizar();
+}
+
+function eliminar(i){
+movimientos.splice(i,1);
+renderizar();
+}
+
+function renderizar(){
+
+let tabla=document.getElementById("tabla");
+tabla.innerHTML="";
+
+let tot={Activo:0,Pasivo:0,Patrimonio:0,Costo:0,Gasto:0,Ingreso:0};
+let mayor={};
+
+movimientos.forEach((m,i)=>{
+
+tabla.innerHTML+=`
+<tr>
+<td>${m.f}</td>
+<td>${m.c}</td>
+<td>${m.g}</td>
+<td>${m.d}</td>
+<td>${m.h}</td>
+<td><button onclick="eliminar(${i})" class="btn btn-danger btn-sm">X</button></td>
+</tr>`;
+
+tot[m.cl]+=m.d-m.h;
+
+if(!mayor[m.c]) mayor[m.c]={debe:0,haber:0};
+mayor[m.c].debe+=m.d;
+mayor[m.c].haber+=m.h;
+
+});
+
+let mayorHTML="";
+for(let cuenta in mayor){
+mayorHTML+=`
+<div class="row mb-3">
+<h5>${cuenta}</h5>
+<div class="col-md-6 border text-center"><b>Debe</b><br>${mayor[cuenta].debe}</div>
+<div class="col-md-6 border text-center"><b>Haber</b><br>${mayor[cuenta].haber}</div>
+</div>`;
+}
+
+document.getElementById("mayor").innerHTML=mayorHTML;
+
+let utilidad=tot.Ingreso-(tot.Gasto+tot.Costo);
+
+document.getElementById("balance").innerHTML=
+"Activo: "+tot.Activo+" | Pasivo: "+tot.Pasivo+" | Patrimonio: "+tot.Patrimonio;
+
+document.getElementById("resultado").innerHTML=
+"Ingresos: "+tot.Ingreso+
+"<br>Gastos: "+tot.Gasto+
+"<br>Costos: "+tot.Costo+
+"<br><b>Utilidad: "+utilidad+"</b>";
+
+generarBalanceComprobacion(mayor);
+actualizarGrafico(tot);
+}
+
+function actualizarGrafico(totales){
+
+let ctx=document.getElementById("grafico").getContext("2d");
+if(miGrafico){ miGrafico.destroy(); }
+
+miGrafico=new Chart(ctx,{
+type:"bar",
+data:{labels:Object.keys(totales),
+datasets:[{label:"Totales",data:Object.values(totales)}]},
+options:{responsive:true}
+});
+}
+
+function cerrarMes(){
+
+let mesActual=obtenerMesActual();
+if(mesesCerrados.includes(mesActual)){
+alert("Mes ya cerrado.");
+return;
+}
+
+let tot={Activo:0,Pasivo:0,Patrimonio:0,Costo:0,Gasto:0,Ingreso:0};
+movimientos.forEach(m=>{ tot[m.cl]+=m.d-m.h; });
+
+let utilidad=tot.Ingreso-(tot.Gasto+tot.Costo);
+
+let fecha=new Date();
+let mes=fecha.toLocaleString('default',{month:'long'})+" "+fecha.getFullYear();
+
+cierresMensuales.push({
+mes:mes,
+ingresos:tot.Ingreso,
+gastos:tot.Gasto,
+costos:tot.Costo,
+utilidad:utilidad
+});
+
+mesesCerrados.push(mesActual);
+
+movimientos=[];
+renderizar();
+renderizarLibroMensual();
+}
+
+function renderizarLibroMensual(){
+let tabla=document.getElementById("libroMensual");
+tabla.innerHTML="";
+cierresMensuales.forEach(c=>{
+tabla.innerHTML+=`
+<tr>
+<td>${c.mes}</td>
+<td>${c.ingresos}</td>
+<td>${c.gastos}</td>
+<td>${c.costos}</td>
+<td><b>${c.utilidad}</b></td>
+</tr>`;
+});
+}
+
+function generarBalanceComprobacion(mayor){
+
+let html="<table class='table table-bordered'><tr><th>Cuenta</th><th>Debe</th><th>Haber</th></tr>";
+let totalDebe=0;
+let totalHaber=0;
+
+for(let cuenta in mayor){
+html+=`<tr><td>${cuenta}</td><td>${mayor[cuenta].debe}</td><td>${mayor[cuenta].haber}</td></tr>`;
+totalDebe+=mayor[cuenta].debe;
+totalHaber+=mayor[cuenta].haber;
+}
+
+html+=`<tr class='table-dark'><td>Total</td><td>${totalDebe}</td><td>${totalHaber}</td></tr></table>`;
+document.getElementById("balanceComprobacion").innerHTML=html;
+}
+
+function imprimir(){ window.print(); }
+
+function guardarWord(){
+let contenido=document.documentElement.outerHTML;
+let blob=new Blob(['\ufeff',contenido],{type:'application/msword'});
+let link=document.createElement("a");
+link.href=URL.createObjectURL(blob);
+link.download="Sistema_Contable.doc";
+link.click();
+}
+
+function exportarExcel(){
+let tabla=document.getElementById("tabla").outerHTML;
+let blob=new Blob([tabla],{type:'application/vnd.ms-excel'});
+let link=document.createElement("a");
+link.href=URL.createObjectURL(blob);
+link.download="Libro_Contable.xls";
+link.click();
+}
+
+</script>
+
+</body>
+</html>
