@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema Contable Pro - F29 & F22 SII</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --sii-blue: #003366; --sii-orange: #f37021; }
+        .f-box { border: 2px solid #000; padding: 20px; background-color: #fff; margin-bottom: 20px; }
+        .sii-label { font-size: 0.8rem; font-weight: bold; color: #555; }
+        .sii-value { border-bottom: 1px solid #ccc; text-align: right; font-weight: bold; }
+        .btn-reset { background-color: #dc3545; color: white; border: none; }
+        .btn-reset:hover { background-color: #a71d2a; color: white; }
+        
+        @media print {
+            .no-print, .btn, .card, hr, label, .nav-tabs { display: none !important; }
+            body { background-color: white !important; padding: 0; }
+            #reporte-exportable { display: block !important; width: 100%; }
+            .f-box { page-break-inside: avoid; border: 1px solid #000; }
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <div>
+            <h2 class="mb-0">Sistema Contable Pro</h2>
+            <small class="text-muted">Módulo Tributario SII (F29 Mensual / F22 Anual)</small>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-dark">🖨️ Imprimir Todo</button>
+            <button onclick="guardarWord()" class="btn btn-outline-primary">📄 Word</button>
+            <button onclick="resetearPrograma()" class="btn btn-reset btn-sm">⚠️ Resetear</button>
+        </div>
+    </div>
+
+    <div class="card p-3 mb-4 shadow-sm no-print border-0">
+        <div class="row g-2">
+            <div class="col-md-9">
+                <div class="row mb-2">
+                    <div class="col-md-3">
+                        <label class="small fw-bold">Fecha</label>
+                        <input type="date" id="fecha" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="small fw-bold">Cuenta</label>
+                        <input type="text" id="cuenta" class="form-control" placeholder="Ej: Mercaderías">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="small fw-bold">Glosa</label>
+                        <input type="text" id="glosa" class="form-control" placeholder="Descripción">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3">
+                        <input type="number" id="debe" class="form-control" placeholder="Debe $">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" id="haber" class="form-control" placeholder="Haber $">
+                    </div>
+                    <div class="col-md-3">
+                        <select id="clasificacion" class="form-control">
+                            <option value="Activo">Activo</option>
+                            <option value="Pasivo">Pasivo</option>
+                            <option value="Patrimonio">Patrimonio</option>
+                            <option value="Ingreso">Ingreso</option>
+                            <option value="Gasto">Gasto</option>
+                            <option value="Costo">Costo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button onclick="calcularIVA()" class="btn btn-info w-100 text-white fw-bold">Calculadora IVA</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 d-grid gap-2">
+                <button onclick="agregar()" class="btn btn-primary">Agregar Asiento</button>
+                <button onclick="cerrarMes()" class="btn btn-success fw-bold">Cerrar Mes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reporte-exportable">
+        
+        <div class="row">
+            <div class="col-md-8">
+                <h4>Libro Diario</h4>
+                <table class="table table-sm table-bordered bg-white shadow-sm">
+                    <thead class="table-dark">
+                        <tr><th>Fecha</th><th>Cuenta</th><th>Debe</th><th>Haber</th><th class="no-print"></th></tr>
+                    </thead>
+                    <tbody id="tabla"></tbody>
+                </table>
+            </div>
+            
+            <div class="col-md-4 no-print">
+                <h4>Acciones SII</h4>
+                <div class="d-grid gap-2">
+                    <button onclick="generarF29()" class="btn btn-warning fw-bold">Simular F29 (Mensual)</button>
+                    <button onclick="generarF22()" class="btn btn-outline-dark">Simular F22 (Anual)</button>
+                </div>
+                <div id="status-mes" class="mt-3 alert alert-secondary small">Mes listo para declarar.</div>
+            </div>
+        </div>
+
+        <hr>
+
+        <div id="areaF29" class="f-box d-none">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                <strong style="color:var(--sii-blue)">FORMULARIO 29 - SII</strong>
+                <span class="badge bg-warning text-dark">DECLARACIÓN MENSUAL DE IMPUESTOS</span>
+            </div>
+            
+            <h6>IMPUESTO AL VALOR AGREGADO (IVA)</h6>
+            <div class="row mb-2">
+                <div class="col-8 sii-label">DÉBITO FISCAL (IVA Ventas - Línea 14):</div>
+                <div class="col-4 sii-value" id="f29-debito">$0</div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-8 sii-label">CRÉDITO FISCAL (IVA Compras - Línea 23):</div>
+                <div class="col-4 sii-value" id="f29-credito">$0</div>
+            </div>
+            <div class="row mb-3 border-top pt-1 fw-bold">
+                <div class="col-8 sii-label">IMPUESTO DETERMINADO IVA:</div>
+                <div class="col-4 sii-value" id="f29-iva-neto">$0</div>
+            </div>
+
+            <h6>IMPUESTO A LA RENTA</h6>
+            <div class="row mb-2">
+                <div class="col-8 sii-label">PAGO PROVISIONAL MENSUAL (PPM 1% - Línea 54):</div>
+                <div class="col-4 sii-value" id="f29-ppm">$0</div>
+            </div>
+            
+            <div class="row mt-3 p-2 bg-dark text-white rounded">
+                <div class="col-8 fw-bold">TOTAL A PAGAR EN ESTE FORMULARIO:</div>
+                <div class="col-4 text-end fw-bold" id="f29-total">$0</div>
+            </div>
+        </div>
+
+        <div id="areaF22" class="f-box d-none">
+            <div class="d-flex justify-content-between border-bottom pb-2 mb-3">
+                <strong style="color:var(--sii-orange)">FORMULARIO 22 - ANUAL</strong>
+                <span>Renta Líquida Imponible</span>
+            </div>
+            <div class="row"><div class="col-8">INGRESOS BRUTOS:</div><div class="col-4 text-end" id="f22-ingresos">$0</div></div>
+            <div class="row"><div class="col-8">EGRESOS/COSTOS:</div><div class="col-4 text-end" id="f22-gastos">$0</div></div>
+            <div class="row fw-bold border-top pt-1"><div class="col-8">BASE IMPONIBLE:</div><div class="col-4 text-end" id="f22-base">$0</div></div>
+            <div class="row mt-2 text-primary fw-bold"><div class="col-8">IMPUESTO 1° CATEGORÍA (10%):</div><div class="col-4 text-end" id="f22-impuesto">$0</div></div>
+        </div>
+
+        <h4>Historial de Cierres Mensuales</h4>
+        <table class="table table-bordered bg-white shadow-sm">
+            <thead class="table-secondary">
+                <tr><th>Mes</th><th>Activos</th><th>Pasivos</th><th>Ingresos</th><th>Egresos</th><th>Utilidad</th></tr>
+            </thead>
+            <tbody id="libroMensual"></tbody>
+        </table>
+
+    </div>
+</div>
+
+<script>
+let movimientos = [];
+let cierresMensuales = [];
+
+function calcularIVA() {
+    let d = Number(document.getElementById("debe").value) || 0;
+    let h = Number(document.getElementById("haber").value) || 0;
+    if (d > 0) {
+        document.getElementById("cuenta").value = "IVA Crédito Fiscal";
+        document.getElementById("debe").value = Math.round(d * 0.19);
+        document.getElementById("clasificacion").value = "Activo";
+    } else if (h > 0) {
+        document.getElementById("cuenta").value = "IVA Débito Fiscal";
+        document.getElementById("haber").value = Math.round(h * 0.19);
+        document.getElementById("clasificacion").value = "Pasivo";
+    } else { alert("Ingrese un monto base en Debe o Haber"); }
+}
+
+function agregar() {
+    let m = {
+        f: document.getElementById("fecha").value || new Date().toISOString().split('T')[0],
+        c: document.getElementById("cuenta").value,
+        g: document.getElementById("glosa").value,
+        d: Number(document.getElementById("debe").value) || 0,
+        h: Number(document.getElementById("haber").value) || 0,
+        cl: document.getElementById("clasificacion").value
+    };
+    if (!m.c) return alert("Cuenta vacía");
+    movimientos.push(m);
+    renderizar();
+    document.getElementById("cuenta").value = "";
+    document.getElementById("debe").value = "";
+    document.getElementById("haber").value = "";
+}
+
+function renderizar() {
+    let t = document.getElementById("tabla");
+    t.innerHTML = "";
+    movimientos.forEach((m, i) => {
+        t.innerHTML += `<tr><td>${m.f}</td><td><strong>${m.c}</strong><br><small>${m.g}</small></td>
+            <td>${m.d || '-'}</td><td>${m.h || '-'}</td>
+            <td class="no-print"><button onclick="eliminar(${i})" class="btn btn-sm btn-link text-danger p-0">Quitar</button></td></tr>`;
+    });
+}
+
+function eliminar(i) { movimientos.splice(i, 1); renderizar(); }
+
+// --- LOGICA FORMULARIO 29 (MENSUAL) ---
+function generarF29() {
+    if (movimientos.length === 0) return alert("No hay movimientos en el mes actual.");
+    
+    let ivaDebito = 0;
+    let ivaCredito = 0;
+    let ingresosNetos = 0;
+
+    movimientos.forEach(m => {
+        // Detectar IVA por nombre de cuenta
+        if (m.c.toLowerCase().includes("iva débito")) ivaDebito += m.h;
+        if (m.c.toLowerCase().includes("iva crédito")) ivaCredito += m.d;
+        // Detectar Ingresos para PPM
+        if (m.cl === "Ingreso") ingresosNetos += (m.h - m.d);
+    });
+
+    let ppm = Math.round(ingresosNetos * 0.01); // PPM estimado 1%
+    let ivaNeto = Math.max(0, ivaDebito - ivaCredito);
+    let totalF29 = ivaNeto + ppm;
+
+    document.getElementById("areaF29").classList.remove("d-none");
+    document.getElementById("f29-debito").innerText = "$" + ivaDebito.toLocaleString();
+    document.getElementById("f29-credito").innerText = "$" + ivaCredito.toLocaleString();
+    document.getElementById("f29-iva-neto").innerText = "$" + ivaNeto.toLocaleString();
+    document.getElementById("f29-ppm").innerText = "$" + ppm.toLocaleString();
+    document.getElementById("f29-total").innerText = "$" + totalF29.toLocaleString();
+    
+    window.scrollTo(0, document.getElementById("areaF29").offsetTop - 50);
+}
+
+function generarF22() {
+    if (cierresMensuales.length === 0) return alert("Debe cerrar al menos un mes para ver el anual.");
+    let ing = cierresMensuales.reduce((s, c) => s + c.ingresos, 0);
+    let gas = cierresMensuales.reduce((s, c) => s + c.gastos, 0);
+    let base = ing - gas;
+    let impuesto = base > 0 ? Math.round(base * 0.10) : 0;
+
+    document.getElementById("areaF22").classList.remove("d-none");
+    document.getElementById("f22-ingresos").innerText = "$" + ing.toLocaleString();
+    document.getElementById("f22-gastos").innerText = "$" + gas.toLocaleString();
+    document.getElementById("f22-base").innerText = "$" + base.toLocaleString();
+    document.getElementById("f22-impuesto").innerText = "$" + impuesto.toLocaleString();
+}
+
+function cerrarMes() {
+    if (movimientos.length === 0) return;
+    let tot = { Activo: 0, Pasivo: 0, Ingreso: 0, Gasto: 0, Costo: 0 };
+    movimientos.forEach(m => {
+        if(m.cl === 'Ingreso') tot.Ingreso += (m.h - m.d);
+        else if(m.cl === 'Gasto' || m.cl === 'Costo') tot.Gasto += (m.d - m.h);
+        else tot[m.cl] += (m.d - m.h);
+    });
+
+    let mesLabel = new Date(document.getElementById("fecha").value || new Date()).toLocaleString('es-CL', { month: 'long', year: 'numeric' });
+
+    cierresMensuales.push({
+        mes: mesLabel,
+        activo: tot.Activo,
+        pasivo: Math.abs(tot.Pasivo),
+        ingresos: tot.Ingreso,
+        gastos: tot.Gasto,
+        utilidad: tot.Ingreso - tot.Gasto
+    });
+
+    movimientos = [];
+    renderizar();
+    renderizarHistorial();
+    document.getElementById("areaF29").classList.add("d-none");
+    alert("Mes cerrado. Datos movidos al historial.");
+}
+
+function renderizarHistorial() {
+    let t = document.getElementById("libroMensual");
+    t.innerHTML = "";
+    cierresMensuales.forEach(c => {
+        t.innerHTML += `<tr><td>${c.mes}</td><td>$${c.activo}</td><td>$${c.pasivo}</td><td>$${c.ingresos}</td><td>$${c.gastos}</td><td class="fw-bold">$${c.utilidad}</td></tr>`;
+    });
+}
+
+function guardarWord() {
+    const contenido = document.getElementById('reporte-exportable').innerHTML;
+    const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>table{border:1px solid black; border-collapse:collapse; width:100%;} th,td{border:1px solid black; padding:5px; font-family:Arial;}</style></head><body>";
+    const blob = new Blob(['\ufeff', header + contenido + "</body></html>"], { type: 'application/msword' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Reporte_SII_${new Date().toLocaleDateString()}.doc`;
+    link.click();
+}
+
+function resetearPrograma() {
+    if (confirm("¿Borrar todo? Se perderá el historial y los asientos.")) {
+        movimientos = []; cierresMensuales = [];
+        renderizar(); renderizarHistorial();
+        document.getElementById("areaF29").classList.add("d-none");
+        document.getElementById("areaF22").classList.add("d-none");
+    }
+}
+</script>
+
+</body>
+</html>
