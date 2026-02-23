@@ -19,7 +19,7 @@
 <input type="date" id="fecha" class="form-control">
 </div>
 
-<div class="col-md-3">
+<div class="col-md-2">
 <input type="text" id="concepto" class="form-control" placeholder="Concepto">
 </div>
 
@@ -35,7 +35,22 @@
 </select>
 </div>
 
-<div class="col-md-3">
+<div class="col-md-2">
+<select id="clasificacion" class="form-control">
+<option>Activo</option>
+<option>Pasivo</option>
+<option>Patrimonio</option>
+<option>Ingreso</option>
+<option>Costo</option>
+<option>Gasto</option>
+</select>
+</div>
+
+<div class="col-md-2">
+<input type="text" id="glosa" class="form-control" placeholder="Glosa">
+</div>
+
+<div class="col-md-12 mt-2">
 <button onclick="agregarTransaccion()" class="btn btn-success w-100">Agregar</button>
 </div>
 
@@ -49,8 +64,10 @@
 <tr>
 <th>Fecha</th>
 <th>Concepto</th>
+<th>Glosa</th>
 <th>Monto</th>
 <th>Tipo</th>
+<th>Clasificación</th>
 <th>Acción</th>
 </tr>
 </thead>
@@ -148,15 +165,17 @@ let patrimonio=0;
 function agregarTransaccion(){
 let fecha=document.getElementById("fecha").value;
 let concepto=document.getElementById("concepto").value;
+let glosa=document.getElementById("glosa").value;
 let monto=parseFloat(document.getElementById("monto").value);
 let tipo=document.getElementById("tipo").value;
+let clasificacion=document.getElementById("clasificacion").value;
 
 if(!fecha||!concepto||!monto){alert("Complete todos los campos");return;}
 
 let mesClave=fecha.substring(0,7);
 if(mesesCerrados.includes(mesClave)){alert("Mes cerrado.");return;}
 
-transacciones.push({fecha,concepto,monto,tipo});
+transacciones.push({fecha,concepto,glosa,monto,tipo,clasificacion});
 renderizarTabla();
 }
 
@@ -169,8 +188,10 @@ tabla.innerHTML+=`
 <tr>
 <td>${t.fecha}</td>
 <td>${t.concepto}</td>
+<td>${t.glosa}</td>
 <td>${t.monto}</td>
 <td>${t.tipo}</td>
+<td>${t.clasificacion}</td>
 <td><button onclick="eliminarTransaccion(${i})" class="btn btn-danger btn-sm">Eliminar</button></td>
 </tr>`;
 });
